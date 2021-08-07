@@ -1,0 +1,8 @@
+[package]
+name = "i_want_to_go_home"
+version = "0.1.0"
+edition = "2018"
+
+[dependencies]
+bevy = { git = "https://github.com/bevyengine/bevy", ref = "90586a4" }
+
