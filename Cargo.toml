@@ -6,4 +6,5 @@ edition = "2018"
 [dependencies]
 bevy = { git = "https://github.com/bevyengine/bevy", ref = "90586a4" }
 noise = "0.7.0"
+rand = "0.8.4"
 

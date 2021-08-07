@@ -1,5 +1,6 @@
 use bevy::prelude::*;
-use noise::{NoiseFn, OpenSimplex};
+use noise::{NoiseFn, OpenSimplex, Seedable};
+use rand::prelude::*;
 
 static TILE_SIZE: i32 = 16;
 
@@ -16,9 +17,9 @@ fn setup_map(
     asset_server: Res<AssetServer>,
     mut materials: ResMut<Assets<ColorMaterial>>,
 ) {
-    let width = 30;
-    let height = 30;
-    let water_level = 0.25;
+    let width = 40;
+    let height = 40;
+    let water_level = 0.27;
     let height_map = HeightMap::new(width, height);
 
     for y in 0..height - 1 {
@@ -59,8 +60,11 @@ pub struct HeightMap {
 
 impl HeightMap {
     fn new(width: u32, height: u32) -> Self {
+        let mut rng = rand::thread_rng();
+        let seed: u32 = rng.gen::<u32>();
+        let noise = OpenSimplex::new().set_seed(seed);
         let mut height_map = Self {
-            noise: OpenSimplex::default(),
+            noise,
             width,
             height,
             octave_scale: 0.025,
