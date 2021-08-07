@@ -8,7 +8,15 @@ impl Plugin for MapPlugin {
     }
 }
 
-fn setup_map(mut commands: Commands) {
-    
+fn setup_map(
+    mut commands: Commands,
+    asset_server: Res<AssetServer>,
+    mut materials: ResMut<Assets<ColorMaterial>>
+) {
+    let texture_handle = asset_server.load("grass.png");
+    commands.spawn_bundle(SpriteBundle {
+        material: materials.add(texture_handle.into()),
+        ..Default::default()
+    });
 }
 

@@ -18,7 +18,11 @@ fn main() {
         .run();
 }
 
-fn setup_camera(mut commands: Commands) {
+fn setup_camera(mut commands: Commands, mut windows: ResMut<Windows>) {
+    windows
+        .get_primary_mut()
+        .unwrap()
+        .update_scale_factor_from_backend(3.0);
     commands
         .spawn_bundle(OrthographicCameraBundle::new_2d())
         .insert(Camera);
