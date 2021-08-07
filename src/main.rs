@@ -22,9 +22,15 @@ fn setup_camera(mut commands: Commands, mut windows: ResMut<Windows>) {
     windows
         .get_primary_mut()
         .unwrap()
-        .update_scale_factor_from_backend(3.0);
+        .update_scale_factor_from_backend(1.0);
     commands
-        .spawn_bundle(OrthographicCameraBundle::new_2d())
+        .spawn_bundle(OrthographicCameraBundle {
+            orthographic_projection: bevy::render::camera::OrthographicProjection {
+                scale: 0.25,
+                ..Default::default()
+            },
+            ..OrthographicCameraBundle::new_2d()
+        })
         .insert(Camera);
 }
 
