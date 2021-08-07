@@ -4,7 +4,19 @@ version = "0.1.0"
 edition = "2018"
 
 [dependencies]
-bevy = { git = "https://github.com/bevyengine/bevy", ref = "90586a4" }
 noise = "0.7.0"
 rand = "0.8.4"
+
+[dependencies.bevy]
+git = "https://github.com/bevyengine/bevy"
+ref = "90586a4"
+features = ["dynamic", "wayland"]
+
+# Enable optimizations for dependencies (incl. Bevy), but not for our code:
+[profile.dev.package."*"]
+opt-level = 3
+
+# Maybe also enable only a small amount of optimization for our code:
+[profile.dev]
+opt-level = 1
 
