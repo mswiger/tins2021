@@ -12,7 +12,7 @@ impl Hex {
         Self { q, r }
     }
 
-    pub fn from_pixel_coords(coords: Vec2) -> Self {
+    pub fn from_pixel_coords(coords: &Vec2) -> Self {
         let root3 = 3.0_f32.sqrt();
         let q = (2.0 / 3.0 * coords.x) / Self::get_size_w();
         let r = (coords.y / Self::get_size_h() - root3 / 2. * q) / root3;
@@ -37,6 +37,13 @@ impl Hex {
 
     pub fn rounded(&self) -> Hex {
         self.to_cube_coords().rounded().to_axial_coords()
+    }
+
+    pub fn distance_to(&self, other: &Hex) -> u32 {
+        let ac = self.to_cube_coords();
+        let bc = other.to_cube_coords();
+
+        ac.distance_to(&bc)
     }
 
     fn get_size_w() -> f32 {
@@ -84,5 +91,9 @@ impl Cube {
         }
 
         Cube::new(rx, ry, rz)
+    }
+
+    pub fn distance_to(&self, other: &Cube) -> u32 {
+        (((self.x - other.x).abs() + (self.y - other.y).abs() + (self.z - other.z).abs()) / 2.0) as u32
     }
 }
