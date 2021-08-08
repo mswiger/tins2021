@@ -11,8 +11,7 @@ pub enum TileType {
 }
 
 pub struct Tile {
-    q: i32,
-    r: i32,
+    hex: Hex,
     tile_type: TileType,
 }
 
@@ -62,9 +61,10 @@ fn setup_map(
             };
             let texture_handle = texture_handle_for_tile_type(&asset_server, &tile_type);
 
-            let q = x as i32;
-            let r = y as i32 - (x as f32 / 2.0).floor() as i32;
-            let pixel_coords = hex_to_pixel_coords(q, r);
+            let q = x as f32;
+            let r = y as f32 - (x as f32 / 2.0).floor();
+            let hex = Hex::new(q, r);
+            let pixel_coords = hex.to_pixel_coords(); 
 
             commands
                 .spawn_bundle(SpriteBundle {
@@ -76,7 +76,7 @@ fn setup_map(
                     )),
                     ..Default::default()
                 })
-                .insert(Tile { q, r, tile_type });
+                .insert(Tile { hex, tile_type });
         }
     }
 }
@@ -102,7 +102,7 @@ fn populate_map(
     let mut rng = rand::thread_rng();
     let spawn_tile_index = rng.gen_range(0..walkable_tiles.len());
     let spawn_tile = walkable_tiles.get(spawn_tile_index).unwrap();
-    let player_coords = hex_to_pixel_coords(spawn_tile.q, spawn_tile.r);
+    let player_coords = spawn_tile.hex.to_pixel_coords();
 
     commands.spawn_bundle(SpriteBundle {
         material: materials.add(asset_server.load("morgan.png").into()),
