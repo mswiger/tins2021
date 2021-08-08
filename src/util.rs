@@ -55,6 +55,19 @@ impl Hex {
     }
 }
 
+impl PartialEq for Hex {
+    fn eq(&self, other: &Self) -> bool {
+        let ar = self.r as i32;
+        let aq = self.q as i32;
+        let br = other.r as i32;
+        let bq = other.q as i32;
+
+        ar == br && aq == bq
+    }
+}
+
+impl Eq for Hex  {}
+
 pub struct Cube {
     x: f32,
     y: f32,

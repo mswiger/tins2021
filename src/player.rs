@@ -1,6 +1,7 @@
 use bevy::prelude::*;
 use bevy::render::camera::OrthographicProjection;
 
+use super::map::*;
 use super::util::*;
 use super::Camera;
 
@@ -19,6 +20,7 @@ fn movement_system(
     mouse_buttons: Res<Input<MouseButton>>,
     mut player_query: Query<&mut Transform, (With<Player>, Without<Camera>)>,
     camera_query: Query<(&Transform, &OrthographicProjection), With<Camera>>,
+    tile_query: Query<&Tile, With<Walkable>>,
 ) {
     let window = windows.get_primary().unwrap();
     let mut player_transform = player_query
@@ -39,11 +41,16 @@ fn movement_system(
             let cur_player_coords =
                 Hex::from_pixel_coords(&Vec2::from(player_transform.translation));
             let mouse_tile_coords = Hex::from_pixel_coords(&mouse_world_pos);
-
-            if cur_player_coords.distance_to(&mouse_tile_coords) == 1 {
-                let player_dest = mouse_tile_coords.to_pixel_coords();
-                player_transform.translation.x = player_dest.x;
-                player_transform.translation.y = player_dest.y;
+            let dest_tile = tile_query
+                .iter()
+                .find(|t| t.hex == mouse_tile_coords);
+            
+            if let Some(_) = dest_tile {
+                if cur_player_coords.distance_to(&mouse_tile_coords) == 1 {
+                    let player_dest = mouse_tile_coords.to_pixel_coords();
+                    player_transform.translation.x = player_dest.x;
+                    player_transform.translation.y = player_dest.y;
+                }
             }
         }
     }

@@ -2,9 +2,9 @@ use bevy::prelude::*;
 use noise::{NoiseFn, OpenSimplex, Seedable};
 use rand::prelude::*;
 
-use super::Camera;
 use super::player::*;
 use super::util::*;
+use super::Camera;
 
 pub enum TileType {
     Water,
@@ -12,14 +12,15 @@ pub enum TileType {
 }
 
 pub struct Tile {
-    hex: Hex,
-    tile_type: TileType,
+    pub hex: Hex,
+    pub tile_type: TileType,
 }
+
+pub struct Walkable;
 
 pub struct MapPlugin;
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
-#[derive(StageLabel)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, StageLabel)]
 pub enum MapStage {
     Setup,
     Populate,
@@ -66,10 +67,11 @@ fn setup_map(
         for y in 0..height - 1 {
             for x in 0..width - 1 {
                 let value = height_map.get(x, y);
+                let mut walkable = false;
                 let tile_type = if value < water_level {
                     TileType::Water
                 } else {
-                    walkable_tile_count += 1;
+                    walkable = true;
                     TileType::Grass
                 };
                 let texture_handle = texture_handle_for_tile_type(&asset_server, &tile_type);
@@ -77,19 +79,27 @@ fn setup_map(
                 let q = x as f32;
                 let r = y as f32 - (x as f32 / 2.0).floor();
                 let hex = Hex::new(q, r);
-                let pixel_coords = hex.to_pixel_coords(); 
+                let pixel_coords = hex.to_pixel_coords();
 
-                commands
-                    .spawn_bundle(SpriteBundle {
-                        material: materials.add(texture_handle.into()),
-                        transform: Transform::from_translation(Vec3::new(
-                            pixel_coords.x,
-                            pixel_coords.y,
-                            0.0,
-                        )),
-                        ..Default::default()
-                    })
-                    .insert(Tile { hex, tile_type });
+                let entity = Some(
+                    commands
+                        .spawn_bundle(SpriteBundle {
+                            material: materials.add(texture_handle.into()),
+                            transform: Transform::from_translation(Vec3::new(
+                                pixel_coords.x,
+                                pixel_coords.y,
+                                0.0,
+                            )),
+                            ..Default::default()
+                        })
+                        .insert(Tile { hex, tile_type })
+                        .id()
+                );
+
+                if walkable {
+                    commands.entity(entity.unwrap()).insert(Walkable {});
+                    walkable_tile_count += 1;
+                }
             }
         }
 
@@ -122,12 +132,17 @@ fn populate_map(
     let spawn_tile = walkable_tiles.get(spawn_tile_index).unwrap();
     let player_coords = spawn_tile.hex.to_pixel_coords();
 
-    commands.spawn_bundle(SpriteBundle {
-        material: materials.add(asset_server.load("morgan.png").into()),
-        transform: Transform::from_translation(Vec3::new(player_coords.x, player_coords.y, 10.0)),
-        ..Default::default()
-    })
-    .insert(Player);
+    commands
+        .spawn_bundle(SpriteBundle {
+            material: materials.add(asset_server.load("morgan.png").into()),
+            transform: Transform::from_translation(Vec3::new(
+                player_coords.x,
+                player_coords.y,
+                10.0,
+            )),
+            ..Default::default()
+        })
+        .insert(Player);
 }
 
 fn focus_player(
@@ -138,7 +153,7 @@ fn focus_player(
         .single()
         .expect("There should only be one player.");
 
-    let mut camera_transform = camera_query 
+    let mut camera_transform = camera_query
         .single_mut()
         .expect("There should only be one camera.");
 
