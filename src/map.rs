@@ -2,6 +2,7 @@ use bevy::prelude::*;
 use noise::{NoiseFn, OpenSimplex, Seedable};
 use rand::prelude::*;
 
+use super::Camera;
 use super::player::*;
 use super::util::*;
 
@@ -22,6 +23,7 @@ pub struct MapPlugin;
 pub enum MapStage {
     Setup,
     Populate,
+    Ready,
 }
 
 impl Plugin for MapPlugin {
@@ -36,8 +38,14 @@ impl Plugin for MapPlugin {
             MapStage::Populate,
             SystemStage::single_threaded(),
         )
+        .add_startup_stage_after(
+            MapStage::Populate,
+            MapStage::Ready,
+            SystemStage::single_threaded(),
+        )
         .add_startup_system_to_stage(MapStage::Setup, setup_map)
-        .add_startup_system_to_stage(MapStage::Populate, populate_map);
+        .add_startup_system_to_stage(MapStage::Populate, populate_map)
+        .add_startup_system_to_stage(MapStage::Ready, focus_player);
     }
 }
 
@@ -120,6 +128,22 @@ fn populate_map(
         ..Default::default()
     })
     .insert(Player);
+}
+
+fn focus_player(
+    player_query: Query<&Transform, (With<Player>, Without<Camera>)>,
+    mut camera_query: Query<&mut Transform, With<Camera>>,
+) {
+    let player_transform = player_query
+        .single()
+        .expect("There should only be one player.");
+
+    let mut camera_transform = camera_query 
+        .single_mut()
+        .expect("There should only be one camera.");
+
+    camera_transform.translation.x = player_transform.translation.x;
+    camera_transform.translation.y = player_transform.translation.y;
 }
 
 fn texture_handle_for_tile_type(
