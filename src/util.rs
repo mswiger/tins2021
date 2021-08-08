@@ -13,8 +13,9 @@ impl Hex {
     }
 
     pub fn from_pixel_coords(coords: Vec2) -> Self {
+        let root3 = 3.0_f32.sqrt();
         let q = (2.0 / 3.0 * coords.x) / Self::get_size_w();
-        let r = (-1.0 / 3.0 * coords.x + 3.0_f32.sqrt() / 3.0 * coords.y) / Self::get_size_h();
+        let r = (coords.y / Self::get_size_h() - root3 / 2. * q) / root3;
 
         Self::new(q, r).rounded()
     }
