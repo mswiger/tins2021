@@ -2,13 +2,43 @@ use bevy::prelude::*;
 use noise::{NoiseFn, OpenSimplex, Seedable};
 use rand::prelude::*;
 
-static TILE_SIZE: i32 = 16;
+use super::player::*;
+use super::util::*;
+
+pub enum TileType {
+    Water,
+    Grass,
+}
+
+pub struct Tile {
+    q: i32,
+    r: i32,
+    tile_type: TileType,
+}
 
 pub struct MapPlugin;
 
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[derive(StageLabel)]
+pub enum MapStage {
+    Setup,
+    Populate,
+}
+
 impl Plugin for MapPlugin {
     fn build(&self, app: &mut App) {
-        app.add_startup_system(setup_map);
+        app.add_startup_stage_after(
+            StartupStage::Startup,
+            MapStage::Setup,
+            SystemStage::single_threaded(),
+        )
+        .add_startup_stage_after(
+            MapStage::Setup,
+            MapStage::Populate,
+            SystemStage::single_threaded(),
+        )
+        .add_startup_system_to_stage(MapStage::Setup, setup_map)
+        .add_startup_system_to_stage(MapStage::Populate, populate_map);
     }
 }
 
@@ -25,27 +55,73 @@ fn setup_map(
     for y in 0..height - 1 {
         for x in 0..width - 1 {
             let value = height_map.get(x, y);
-            let texture_handle = if value < water_level {
-                asset_server.load("water.png")
+            let tile_type = if value < water_level {
+                TileType::Water
             } else {
-                asset_server.load("grass.png")
+                TileType::Grass
             };
+            let texture_handle = texture_handle_for_tile_type(&asset_server, &tile_type);
 
-            let q = x as f32;
-            let r = y as f32 - (x as f32 /2.0).floor();
+            let q = x as i32;
+            let r = y as i32 - (x as f32 / 2.0).floor() as i32;
+            let pixel_coords = hex_to_pixel_coords(q, r);
 
-            // axial translate
-            let root3 = 3.0_f32.sqrt();
-            let translate_x = TILE_SIZE as f32 / 2.0 * (3.0 / 2.0 * q);
-            let translate_y = TILE_SIZE as f32 / root3 * (root3 / 2.0 * q + root3 * r);
-           
-            commands.spawn_bundle(SpriteBundle {
-                material: materials.add(texture_handle.into()),
-                transform: Transform::from_translation(Vec3::new(translate_x, translate_y, 0.0)),
-                ..Default::default()
-            });
+            commands
+                .spawn_bundle(SpriteBundle {
+                    material: materials.add(texture_handle.into()),
+                    transform: Transform::from_translation(Vec3::new(
+                        pixel_coords.x,
+                        pixel_coords.y,
+                        0.0,
+                    )),
+                    ..Default::default()
+                })
+                .insert(Tile { q, r, tile_type });
         }
     }
+}
+
+fn populate_map(
+    mut commands: Commands,
+    asset_server: Res<AssetServer>,
+    mut materials: ResMut<Assets<ColorMaterial>>,
+    tile_query: Query<&Tile>,
+) {
+    let walkable_tiles: Vec<&Tile> = tile_query
+        .iter()
+        .map(|tile| &(*tile))
+        .filter(|tile| {
+            if let TileType::Grass = tile.tile_type {
+                true
+            } else {
+                false
+            }
+        })
+        .collect();
+
+    let mut rng = rand::thread_rng();
+    let spawn_tile_index = rng.gen_range(0..walkable_tiles.len());
+    let spawn_tile = walkable_tiles.get(spawn_tile_index).unwrap();
+    let player_coords = hex_to_pixel_coords(spawn_tile.q, spawn_tile.r);
+
+    commands.spawn_bundle(SpriteBundle {
+        material: materials.add(asset_server.load("morgan.png").into()),
+        transform: Transform::from_translation(Vec3::new(player_coords.x, player_coords.y, 10.0)),
+        ..Default::default()
+    })
+    .insert(Player);
+}
+
+fn texture_handle_for_tile_type(
+    asset_server: &AssetServer,
+    tile_type: &TileType,
+) -> Handle<Texture> {
+    let texture_handle = match tile_type {
+        TileType::Water => asset_server.load("water.png"),
+        TileType::Grass => asset_server.load("grass.png"),
+    };
+
+    texture_handle
 }
 
 pub struct HeightMap {
