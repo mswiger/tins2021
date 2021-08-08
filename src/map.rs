@@ -49,34 +49,44 @@ fn setup_map(
     let width = 40;
     let height = 40;
     let water_level = 0.27;
-    let height_map = HeightMap::new(width, height);
+    let walkable_tile_threshold = 250;
 
-    for y in 0..height - 1 {
-        for x in 0..width - 1 {
-            let value = height_map.get(x, y);
-            let tile_type = if value < water_level {
-                TileType::Water
-            } else {
-                TileType::Grass
-            };
-            let texture_handle = texture_handle_for_tile_type(&asset_server, &tile_type);
+    loop {
+        let height_map = HeightMap::new(width, height);
+        let mut walkable_tile_count = 0;
 
-            let q = x as f32;
-            let r = y as f32 - (x as f32 / 2.0).floor();
-            let hex = Hex::new(q, r);
-            let pixel_coords = hex.to_pixel_coords(); 
+        for y in 0..height - 1 {
+            for x in 0..width - 1 {
+                let value = height_map.get(x, y);
+                let tile_type = if value < water_level {
+                    TileType::Water
+                } else {
+                    walkable_tile_count += 1;
+                    TileType::Grass
+                };
+                let texture_handle = texture_handle_for_tile_type(&asset_server, &tile_type);
 
-            commands
-                .spawn_bundle(SpriteBundle {
-                    material: materials.add(texture_handle.into()),
-                    transform: Transform::from_translation(Vec3::new(
-                        pixel_coords.x,
-                        pixel_coords.y,
-                        0.0,
-                    )),
-                    ..Default::default()
-                })
-                .insert(Tile { hex, tile_type });
+                let q = x as f32;
+                let r = y as f32 - (x as f32 / 2.0).floor();
+                let hex = Hex::new(q, r);
+                let pixel_coords = hex.to_pixel_coords(); 
+
+                commands
+                    .spawn_bundle(SpriteBundle {
+                        material: materials.add(texture_handle.into()),
+                        transform: Transform::from_translation(Vec3::new(
+                            pixel_coords.x,
+                            pixel_coords.y,
+                            0.0,
+                        )),
+                        ..Default::default()
+                    })
+                    .insert(Tile { hex, tile_type });
+            }
+        }
+
+        if walkable_tile_count >= walkable_tile_threshold {
+            break;
         }
     }
 }
