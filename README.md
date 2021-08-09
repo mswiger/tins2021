@@ -4,6 +4,9 @@ Navigate through a randomly generated island and try to find the portal to go ba
 Move by clicking on tiles that are adjacent to your character.
 The camera can be controlled with WASD or the arrow keys.
 
+## Building / Running
+Requires [Rust](https://www.rust-lang.org/tools/install). To run, clone this repo, and run `cargo run --release` from the repository root.
+
 ## TINS Rules
 * **genre rule #143 - Humoristic/Funny:** I tried to do a few things to make the player laugh (title card, soundtrack).
 * **artistical rule #147 - Inspired by MC Escher:** The game's tilemap is a tessellated "grid" of hexagons.
