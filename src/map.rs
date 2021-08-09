@@ -90,6 +90,10 @@ fn setup_map(
                                 pixel_coords.y,
                                 0.0,
                             )),
+                            visible: Visible {
+                                is_visible: false,
+                                ..Default::default()
+                            },
                             ..Default::default()
                         })
                         .insert(Tile { hex, tile_type })
@@ -148,6 +152,7 @@ fn populate_map(
 fn focus_player(
     player_query: Query<&Transform, (With<Player>, Without<Camera>)>,
     mut camera_query: Query<&mut Transform, With<Camera>>,
+    mut tile_query: Query<(&Tile, &mut Visible)>,
 ) {
     let player_transform = player_query
         .single()
@@ -156,6 +161,13 @@ fn focus_player(
     let mut camera_transform = camera_query
         .single_mut()
         .expect("There should only be one camera.");
+
+    let spawn_tile = Hex::from_pixel_coords(&Vec2::from(player_transform.translation)).rounded();
+
+    tile_query
+        .iter_mut()
+        .filter(|(tile, _)| tile.hex.distance_to(&spawn_tile) <= 1)
+        .for_each(|(_, mut visible)| visible.is_visible = true);
 
     camera_transform.translation.x = player_transform.translation.x;
     camera_transform.translation.y = player_transform.translation.y;
