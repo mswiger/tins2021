@@ -50,19 +50,19 @@ fn pan_camera(
     for mut transform in query.iter_mut() {
         let mut direction = Vec3::ZERO;
 
-        if keyboard_input.pressed(KeyCode::A) {
+        if keyboard_input.pressed(KeyCode::A) || keyboard_input.pressed(KeyCode::Left) {
             direction -= Vec3::new(1.0, 0.0, 0.0);
         }
 
-        if keyboard_input.pressed(KeyCode::D) {
+        if keyboard_input.pressed(KeyCode::D) || keyboard_input.pressed(KeyCode::Right) {
             direction += Vec3::new(1.0, 0.0, 0.0);
         }
 
-        if keyboard_input.pressed(KeyCode::W) {
+        if keyboard_input.pressed(KeyCode::W) || keyboard_input.pressed(KeyCode::Up) {
             direction += Vec3::new(0.0, 1.0, 0.0);
         }
 
-        if keyboard_input.pressed(KeyCode::S) {
+        if keyboard_input.pressed(KeyCode::S) || keyboard_input.pressed(KeyCode::Down) {
             direction -= Vec3::new(0.0, 1.0, 0.0);
         }
 
