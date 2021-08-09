@@ -15,3 +15,6 @@ The camera can be controlled with WASD or the arrow keys.
 Currently on Windows, the cursor coordinates are way off.
 If you are having trouble moving the character, try moving the mouse around the top-right-ish part of the screen until you see a yellow hexagon cursor appear near your character.
 That hexagon represents where the game thinks your cursor is. You can kind of make it work by clicking around a bunch when you find that spot on the screen.
+
+## Links
+https://tins.amarillion.org/2021/
