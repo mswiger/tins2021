@@ -9,6 +9,7 @@ use super::Camera;
 pub enum TileType {
     Water,
     Grass,
+    Exit,
 }
 
 pub struct Tile {
@@ -17,6 +18,8 @@ pub struct Tile {
 }
 
 pub struct Walkable;
+
+pub struct Exit;
 
 pub struct MapPlugin;
 
@@ -97,7 +100,7 @@ fn setup_map(
                             ..Default::default()
                         })
                         .insert(Tile { hex, tile_type })
-                        .id()
+                        .id(),
                 );
 
                 if walkable {
@@ -147,6 +150,34 @@ fn populate_map(
             ..Default::default()
         })
         .insert(Player);
+
+    let mut exit_tile_index;
+    loop {
+        exit_tile_index = rng.gen_range(0..walkable_tiles.len());
+        if exit_tile_index != spawn_tile_index {
+            break;
+        }
+    }
+
+    let exit_tile = walkable_tiles.get(exit_tile_index).unwrap();
+    let exit_coords = exit_tile.hex.to_pixel_coords();
+
+    commands
+        .spawn_bundle(SpriteBundle {
+            material: materials
+                .add(texture_handle_for_tile_type(&asset_server, &TileType::Exit).into()),
+            transform: Transform::from_translation(Vec3::new(exit_coords.x, exit_coords.y, 5.0)),
+            visible: Visible {
+                is_visible: false,
+                is_transparent: true,
+            },
+            ..Default::default()
+        })
+        .insert(Tile {
+            tile_type: TileType::Exit,
+            hex: exit_tile.hex.clone(),
+        })
+        .insert(Exit);
 }
 
 fn focus_player(
@@ -180,6 +211,7 @@ fn texture_handle_for_tile_type(
     let texture_handle = match tile_type {
         TileType::Water => asset_server.load("water.png"),
         TileType::Grass => asset_server.load("grass.png"),
+        TileType::Exit => asset_server.load("exit.png"),
     };
 
     texture_handle

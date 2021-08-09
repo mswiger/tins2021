@@ -2,6 +2,7 @@ use bevy::prelude::*;
 
 static TILE_SIZE: i32 = 16;
 
+#[derive(Copy, Clone)]
 pub struct Hex {
     q: f32,
     r: f32,

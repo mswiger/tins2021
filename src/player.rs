@@ -2,6 +2,7 @@ use bevy::prelude::*;
 use bevy::render::camera::OrthographicProjection;
 
 use super::map::*;
+use super::game::*;
 use super::util::*;
 use super::Camera;
 
@@ -38,17 +39,29 @@ fn cursor_init(
 }
 
 fn movement_system(
+    mut commands: Commands,
+    asset_server: Res<AssetServer>,
     windows: Res<Windows>,
     mouse_buttons: Res<Input<MouseButton>>,
     mut player_query: Query<&mut Transform, (With<Player>, Without<Camera>)>,
     camera_query: Query<(&Transform, &OrthographicProjection), With<Camera>>,
     walkable_tile_query: Query<&Tile, With<Walkable>>,
     mut tile_query: Query<(&Tile, &mut Visible)>,
+    exit_tile_query: Query<&Tile, With<Exit>>,
+    mut game: ResMut<Game>,
 ) {
+    if game.won {
+        return;
+    }
+
     let window = windows.get_primary().unwrap();
     let mut player_transform = player_query
         .single_mut()
         .expect("There should only be one player.");
+
+    let exit_tile = exit_tile_query
+        .single()
+        .expect("There should only be one exit tile.");
 
     if mouse_buttons.just_pressed(MouseButton::Left) {
         if let Some(mouse_pos) = window.cursor_position() {
@@ -73,6 +86,30 @@ fn movement_system(
                         .iter_mut()
                         .filter(|(tile, _)| tile.hex.distance_to(&dt.hex) <= 1)
                         .for_each(|(_, mut visible)| visible.is_visible = true);
+
+                    if mouse_tile_coords == exit_tile.hex {
+                        game.won = true;
+                        commands.spawn_bundle(Text2dBundle {
+                            text: Text::with_section(
+                                "YOU DID IT",
+                                TextStyle {
+                                    font_size: 50.0,
+                                    color: Color::RED,
+                                    font: asset_server.load("FiraSans-Bold.ttf"),
+                                },
+                                TextAlignment {
+                                    horizontal: HorizontalAlign::Center,
+                                    ..Default::default()
+                                },
+                            ),
+                            transform: Transform::from_translation(Vec3::new(
+                                cam_transform.translation.x,
+                                cam_transform.translation.y,
+                                100.0,
+                            )),
+                            ..Default::default()
+                        });
+                    }
                 }
             }
         }
