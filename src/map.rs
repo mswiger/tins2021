@@ -92,7 +92,7 @@ fn setup_map(
                             )),
                             visible: Visible {
                                 is_visible: false,
-                                ..Default::default()
+                                is_transparent: true,
                             },
                             ..Default::default()
                         })
