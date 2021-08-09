@@ -94,7 +94,7 @@ fn movement_system(
                                 "YOU DID IT",
                                 TextStyle {
                                     font_size: 50.0,
-                                    color: Color::RED,
+                                    color: Color::rgb(177. / 255., 62. / 255., 83. / 255.),
                                     font: asset_server.load("FiraSans-Bold.ttf"),
                                 },
                                 TextAlignment {

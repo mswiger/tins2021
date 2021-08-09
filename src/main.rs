@@ -1,10 +1,14 @@
 use bevy::diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin};
 use bevy::prelude::*;
+use bevy::input::keyboard::KeyboardInput;
+use bevy::input::mouse::MouseButtonInput;
 
 mod game;
 mod map;
 mod player;
 mod util;
+
+struct MainMenuUI;
 
 struct Camera;
 
@@ -16,7 +20,7 @@ fn main() {
             height: 720.0,
             ..Default::default()
         })
-        .insert_resource(ClearColor(Color::rgb(0.0, 0.0, 0.0)))
+        .insert_resource(ClearColor(Color::rgb(26. / 255., 28. / 255., 44. / 255.)))
         .init_resource::<game::Game>()
         .add_plugins(DefaultPlugins)
         .add_plugin(LogDiagnosticsPlugin::default())
@@ -26,9 +30,111 @@ fn main() {
         .add_plugin(player::PlayerPlugin)
         .add_startup_system(setup_camera)
         .add_system(pan_camera)
+        .add_startup_system(setup_menu)
+        .add_system(handle_menu_input)
         .run();
 }
 
+fn setup_menu(
+    mut commands: Commands,
+    mut materials: ResMut<Assets<ColorMaterial>>,
+    asset_server: Res<AssetServer>,
+) {
+    commands.spawn_bundle(UiCameraBundle::default());
+    commands
+        .spawn_bundle(NodeBundle {
+            style: Style {
+                size: Size::new(Val::Percent(100.0), Val::Percent(25.0)),
+                position_type: PositionType::Absolute,
+                justify_content: JustifyContent::Center,
+                align_items: AlignItems::FlexEnd,
+                ..Default::default()
+            },
+            material: materials.add(Color::NONE.into()),
+            ..Default::default()
+        })
+        .with_children(|parent| {
+            parent.spawn_bundle(TextBundle {
+                text: Text::with_section(
+                    "Find the portal to go home. For another exciting\
+                    \"technically a game,\" check out github.com/mswiger/curio",
+                    TextStyle {
+                        font_size: 20.0,
+                        color: Color::rgb(177. / 255., 62. / 255., 83. / 255.),
+                        font: asset_server.load("FiraSans-Bold.ttf"),
+                    },
+                    TextAlignment {
+                        horizontal: HorizontalAlign::Center,
+                        vertical: VerticalAlign::Center,
+                        ..Default::default()
+                    },
+                ),
+                style: Style {
+                    align_self: AlignSelf::Center,
+                    ..Default::default()
+                },
+                ..Default::default()
+            })
+            .insert(MainMenuUI);
+    })
+    .insert(MainMenuUI);
+    commands
+        .spawn_bundle(NodeBundle {
+            style: Style {
+                size: Size::new(Val::Percent(100.0), Val::Percent(100.0)),
+                position_type: PositionType::Absolute,
+                justify_content: JustifyContent::Center,
+                align_items: AlignItems::FlexEnd,
+                ..Default::default()
+            },
+            material: materials.add(Color::NONE.into()),
+            ..Default::default()
+        })
+        .with_children(|parent| {
+            parent.spawn_bundle(TextBundle {
+                text: Text::with_section(
+                    "I Want to Go Home",
+                    TextStyle {
+                        font_size: 100.0,
+                        color: Color::rgb(177. / 255., 62. / 255., 83. / 255.),
+                        font: asset_server.load("FiraSans-Bold.ttf"),
+                    },
+                    TextAlignment {
+                        horizontal: HorizontalAlign::Center,
+                        vertical: VerticalAlign::Bottom,
+                        ..Default::default()
+                    },
+                ),
+                style: Style {
+                    align_self: AlignSelf::Center,
+                    ..Default::default()
+                },
+                ..Default::default()
+            })
+            .insert(MainMenuUI);
+        })
+        .insert(MainMenuUI);
+}
+
+fn handle_menu_input(
+    mut commands: Commands,
+    mut key_event_reader: EventReader<KeyboardInput>,
+    mut mouse_event_reader: EventReader<MouseButtonInput>,
+    main_menu_ui_query: Query<Entity, With<MainMenuUI>>,
+) {
+    let mut button_pressed = false;
+    if let Some(_) = mouse_event_reader.iter().last() {
+        button_pressed = true;
+    }
+    if let Some(_) = key_event_reader.iter().last() {
+        button_pressed = true;
+    }
+    if button_pressed {
+        for menu_entity in main_menu_ui_query.iter() {
+            commands.entity(menu_entity).despawn();
+        }
+    }
+}
 
 fn setup_camera(mut commands: Commands, mut windows: ResMut<Windows>) {
     windows
