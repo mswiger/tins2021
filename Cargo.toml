@@ -12,6 +12,9 @@ git = "https://github.com/bevyengine/bevy"
 ref = "90586a4"
 features = ["dynamic", "wayland"]
 
+[dev-dependencies]
+float-cmp = "0.6.0"
+
 # Enable optimizations for dependencies (incl. Bevy), but not for our code:
 [profile.dev.package."*"]
 opt-level = 3

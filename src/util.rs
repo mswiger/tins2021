@@ -111,3 +111,17 @@ impl Cube {
         (((self.x - other.x).abs() + (self.y - other.y).abs() + (self.z - other.z).abs()) / 2.0) as u32
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use float_cmp::*;
+
+    #[test]
+    fn test_hex_to_pixel_coords() {
+        let pixel_coords = Vec2::new(156., -24.);
+        let hex_coords = Hex::from_pixel_coords(&pixel_coords);
+        let converted_pixel_coords = hex_coords.to_pixel_coords();
+        assert!(approx_eq!(f32, pixel_coords.x, converted_pixel_coords.x));
+    }
+}
