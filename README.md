@@ -4,6 +4,8 @@ Navigate through a randomly generated island and try to find the portal to go ba
 Move by clicking on tiles that are adjacent to your character.
 The camera can be controlled with WASD or the arrow keys.
 
+![screenshot_fab0Gdi](https://user-images.githubusercontent.com/363815/187045313-0706bcbb-e0e5-451f-89a7-aac5613aed30.png)
+
 ## Building / Running
 Requires [Rust](https://www.rust-lang.org/tools/install). To run, clone this repo, and run `cargo run --release` from the repository root.
 
